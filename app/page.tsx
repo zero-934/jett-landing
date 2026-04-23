@@ -18,7 +18,7 @@ const GAME_BASE_URL = "https://zero-934.github.io/jett-game/"
 
 function launchGame(sceneKey?: string) {
   if (!sceneKey) return
-  window.open(GAME_BASE_URL, '_blank')
+  window.location.href = `${GAME_BASE_URL}?scene=${sceneKey}`
 }
 
 const games: Game[] = [
