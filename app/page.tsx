@@ -201,6 +201,70 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 
 export default function CasinoLobby() {
   const [activeNav, setActiveNav] = useState(0)
+  const [unlocked, setUnlocked] = useState(false)
+  const [pin, setPin] = useState("")
+  const [error, setError] = useState(false)
+
+  // Check if already authenticated
+  const STORAGE_KEY = "jg_auth"
+  const CORRECT_PIN = "9340"
+
+  // On mount, check sessionStorage
+  if (typeof window !== "undefined" && !unlocked) {
+    if (sessionStorage.getItem(STORAGE_KEY) === "ok") {
+      // already auth — will render lobby
+    }
+  }
+
+  const handlePin = (digit: string) => {
+    if (error) { setError(false); setPin(""); return; }
+    const next = pin + digit
+    if (next.length <= 4) {
+      setPin(next)
+      if (next.length === 4) {
+        setTimeout(() => {
+          if (next === CORRECT_PIN) {
+            sessionStorage.setItem(STORAGE_KEY, "ok")
+            setUnlocked(true)
+          } else {
+            setError(true)
+            setTimeout(() => { setError(false); setPin(""); }, 1000)
+          }
+        }, 120)
+      }
+    }
+  }
+
+  const isAuth = unlocked || (typeof window !== "undefined" && sessionStorage.getItem(STORAGE_KEY) === "ok")
+
+  if (!isAuth) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-8">
+        <div className="mb-8 text-center">
+          <span className="text-3xl font-light text-gold tracking-widest uppercase">jett</span>
+          <p className="text-muted text-sm mt-2 tracking-wider uppercase">Enter Access Code</p>
+        </div>
+        <div className="flex gap-4 mb-8">
+          {[0,1,2,3].map(i => (
+            <div key={i} className={`w-4 h-4 rounded-full border-2 transition-colors ${
+              error ? "border-danger bg-danger" :
+              i < pin.length ? "border-gold bg-gold" : "border-border bg-transparent"
+            }`} />
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-3 w-full max-w-xs">
+          {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((k, i) => (
+            <button key={i}
+              onClick={() => k === "⌫" ? setPin(p => p.slice(0,-1)) : k ? handlePin(k) : null}
+              className={`aspect-square rounded-[12px] text-xl font-semibold transition-colors ${
+                k ? "bg-surface border border-border text-foreground active:bg-card" : "invisible"
+              }`}
+            >{k}</button>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   const featuredGame = games.find(g => g.featured)!
   const skillGames = games.filter(g => g.category === "SKILL")
