@@ -1,0 +1,340 @@
+"use client"
+
+import { useState } from "react"
+import { Home, Gamepad2, History, User, ChevronRight, Zap, Sparkles, Layers } from "lucide-react"
+
+type Category = "SKILL" | "CHANCE" | "SLOTS" | "SOON"
+
+interface Game {
+  name: string
+  category: Category
+  rtp: string
+  featured?: boolean
+  hot?: boolean
+  sceneKey?: string
+}
+
+const GAME_BASE_URL = "https://zero-934.github.io/jett-game/"
+
+function launchGame(sceneKey?: string) {
+  if (!sceneKey) return
+  window.open(GAME_BASE_URL, '_blank')
+}
+
+const games: Game[] = [
+  { name: "Jett", sceneKey: "JettScene", category: "SKILL", rtp: "96%", featured: true, hot: true },
+  { name: "Shatter Step", sceneKey: "ShatterStepScene", category: "SKILL", rtp: "97%", hot: true },
+  { name: "Flap Fortune", sceneKey: "FlapFortuneScene", category: "SKILL", rtp: "95%" },
+  { name: "Dice", sceneKey: "DiceScene", category: "CHANCE", rtp: "98%", hot: true },
+  { name: "Dice Duel", sceneKey: "DiceDuelScene", category: "CHANCE", rtp: "97%" },
+  { name: "Mines", sceneKey: "MinesScene", category: "CHANCE", rtp: "97%" },
+  { name: "Ball Drop", sceneKey: "BallDropScene", category: "CHANCE", rtp: "96%" },
+  { name: "The Alchemist", sceneKey: "AlchemistScene", category: "SLOTS", rtp: "96%", hot: true },
+  { name: "Midnight Masquerade", sceneKey: "MasqueradeScene", category: "SLOTS", rtp: "97%" },
+  { name: "Surge", sceneKey: "SurgeScene", category: "SLOTS", rtp: "95%" },
+  { name: "Inferno", sceneKey: "InfernoScene", category: "SLOTS", rtp: "94%" },
+  { name: "Shadow Roulette", category: "SOON", rtp: "97%" },
+  { name: "Phantom Poker", category: "SOON", rtp: "98%" },
+  { name: "Obsidian Blackjack", category: "SOON", rtp: "99%" },
+  { name: "Neon Keno", category: "SOON", rtp: "92%" },
+  { name: "Dark Horse Racing", category: "SOON", rtp: "94%" },
+  { name: "Lunar Crash", category: "SOON", rtp: "97%" },
+  { name: "Void Plinko", category: "SOON", rtp: "96%" },
+  { name: "Cipher Wheel", category: "SOON", rtp: "95%" },
+  { name: "Spectre Scratch", category: "SOON", rtp: "93%" },
+  { name: "Abyss Baccarat", category: "SOON", rtp: "98%" },
+]
+
+const categoryIcons: Record<Category, typeof Zap> = {
+  SKILL: Zap,
+  CHANCE: Sparkles,
+  SLOTS: Layers,
+  SOON: Sparkles,
+}
+
+function FeaturedCard({ game }: { game: Game }) {
+  return (
+    <button onClick={() => launchGame(game.sceneKey)} className="relative w-full aspect-[16/9] bg-card rounded-[16px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]">
+      <div className="absolute inset-0 bg-[#0a0a0a]" />
+      
+      {/* Content overlay */}
+      <div className="absolute inset-0 flex flex-col justify-between p-4">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-1 bg-gold/20 text-gold text-[10px] font-semibold uppercase rounded-full">
+              Featured
+            </span>
+            {game.hot && (
+              <span className="px-2 py-1 bg-danger/20 text-danger text-[10px] font-semibold uppercase rounded-full">
+                Hot
+              </span>
+            )}
+          </div>
+          <span className="text-[11px] text-muted">{game.rtp} RTP</span>
+        </div>
+        
+        <div className="flex items-end justify-between">
+          <div>
+            <span className="text-[10px] text-muted uppercase tracking-wider">{game.category}</span>
+            <h2 className="text-2xl font-semibold text-foreground">{game.name}</h2>
+          </div>
+          <div className="px-5 py-2.5 bg-gold text-black text-sm font-semibold rounded-[10px]">
+            PLAY NOW
+          </div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
+function CompactCard({ game }: { game: Game }) {
+  const isSoon = game.category === "SOON"
+  const Icon = categoryIcons[game.category]
+
+  return (
+    <button
+      onClick={() => !isSoon && launchGame(game.sceneKey)}
+      className="flex-shrink-0 w-[140px] text-left bg-card rounded-[12px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.97]"
+      disabled={isSoon}
+    >
+      <div className="relative aspect-square bg-[#0a0a0a] flex items-center justify-center">
+        <Icon className={`w-8 h-8 ${isSoon ? 'text-inactive' : 'text-muted'}`} />
+        {game.hot && !isSoon && (
+          <span className="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full" />
+        )}
+      </div>
+      <div className="p-3">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-medium text-foreground truncate">{game.name}</span>
+        </div>
+        <span className="text-[10px] text-muted">{game.rtp}</span>
+      </div>
+    </button>
+  )
+}
+
+function GameCard({ game, size = "normal" }: { game: Game; size?: "normal" | "large" }) {
+  const isSoon = game.category === "SOON"
+  const Icon = categoryIcons[game.category]
+
+  if (size === "large") {
+    return (
+      <button
+        onClick={() => !isSoon && launchGame(game.sceneKey)}
+        className="col-span-2 text-left bg-card rounded-[14px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]"
+        disabled={isSoon}
+      >
+        <div className="flex">
+          <div className="relative w-1/2 aspect-[4/3] bg-[#0a0a0a] flex items-center justify-center">
+            <Icon className={`w-12 h-12 ${isSoon ? 'text-inactive' : 'text-muted'}`} />
+            {game.hot && !isSoon && (
+              <span className="absolute top-3 left-3 px-2 py-0.5 bg-danger/20 text-danger text-[9px] font-semibold uppercase rounded-full">
+                Hot
+              </span>
+            )}
+          </div>
+          <div className="flex-1 p-4 flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] text-muted uppercase tracking-wider">{game.category}</span>
+              <h3 className="text-lg font-semibold text-foreground mt-0.5">{game.name}</h3>
+              <span className="text-xs text-muted">{game.rtp} RTP</span>
+            </div>
+            <div
+              className={`w-full py-2 rounded-[8px] text-center text-xs font-semibold ${
+                isSoon
+                  ? "bg-surface text-inactive"
+                  : "bg-gold text-black"
+              }`}
+            >
+              {isSoon ? "Coming Soon" : "PLAY"}
+            </div>
+          </div>
+        </div>
+      </button>
+    )
+  }
+
+  return (
+    <button
+      onClick={() => !isSoon && launchGame(game.sceneKey)}
+      className="text-left bg-card rounded-[12px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.97]"
+      disabled={isSoon}
+    >
+      <div className="relative aspect-[4/3] bg-[#0a0a0a] flex items-center justify-center">
+        <Icon className={`w-10 h-10 ${isSoon ? 'text-inactive' : 'text-muted'}`} />
+        {game.hot && !isSoon && (
+          <span className="absolute top-2 right-2 w-2 h-2 bg-danger rounded-full" />
+        )}
+      </div>
+      <div className="p-3 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-foreground">{game.name}</span>
+          <span className="text-[10px] text-muted">{game.rtp}</span>
+        </div>
+        <div
+          className={`w-full py-2 rounded-[8px] text-center text-xs font-semibold ${
+            isSoon
+              ? "bg-surface text-inactive"
+              : "bg-gold text-black"
+          }`}
+        >
+          {isSoon ? "Coming Soon" : "PLAY"}
+        </div>
+      </div>
+    </button>
+  )
+}
+
+function SectionHeader({ title, count }: { title: string; count: number }) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center gap-2">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <span className="text-xs text-muted">({count})</span>
+      </div>
+      <button className="flex items-center gap-1 text-xs text-gold">
+        See all <ChevronRight className="w-3 h-3" />
+      </button>
+    </div>
+  )
+}
+
+export default function CasinoLobby() {
+  const [activeNav, setActiveNav] = useState(0)
+
+  const featuredGame = games.find(g => g.featured)!
+  const skillGames = games.filter(g => g.category === "SKILL")
+  const chanceGames = games.filter(g => g.category === "CHANCE")
+  const slotGames = games.filter(g => g.category === "SLOTS")
+  const soonGames = games.filter(g => g.category === "SOON")
+  const hotGames = games.filter(g => g.hot && !g.featured)
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between border-b border-border">
+        <span className="text-xl font-light text-foreground tracking-widest uppercase">
+          jett
+        </span>
+
+        <div className="flex items-center gap-3">
+          <div className="bg-surface px-3 py-1.5 rounded-full border border-border">
+            <span className="text-gold text-sm font-semibold">◎ 2.40</span>
+          </div>
+          <button className="px-3 py-1.5 rounded-[8px] border border-gold text-gold text-xs font-semibold hover:bg-gold/10 transition-colors">
+            Connect
+          </button>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 pb-24 overflow-y-auto">
+        {/* Featured Hero */}
+        <section className="px-4 pt-4 pb-6">
+          <FeaturedCard game={featuredGame} />
+        </section>
+
+        {/* Hot Games - Horizontal Scroll */}
+        <section className="pb-6">
+          <div className="px-4">
+            <SectionHeader title="Hot Right Now" count={hotGames.length} />
+          </div>
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+            {hotGames.map((game) => (
+              <CompactCard key={game.name} game={game} />
+            ))}
+          </div>
+        </section>
+
+        {/* Skill Games */}
+        <section className="px-4 pb-6">
+          <SectionHeader title="Skill Games" count={skillGames.length} />
+          <div className="grid grid-cols-2 gap-3">
+            {skillGames.slice(0, 1).map((game) => (
+              <GameCard key={game.name} game={game} size="large" />
+            ))}
+            {skillGames.slice(1).map((game) => (
+              <GameCard key={game.name} game={game} />
+            ))}
+          </div>
+        </section>
+
+        {/* Chance Games */}
+        <section className="px-4 pb-6">
+          <SectionHeader title="Games of Chance" count={chanceGames.length} />
+          <div className="grid grid-cols-2 gap-3">
+            {chanceGames.map((game, i) => (
+              <GameCard key={game.name} game={game} size={i === 0 ? "large" : "normal"} />
+            ))}
+          </div>
+        </section>
+
+        {/* Slots */}
+        <section className="pb-6">
+          <div className="px-4">
+            <SectionHeader title="Slots" count={slotGames.length} />
+          </div>
+          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+            {slotGames.map((game) => (
+              <CompactCard key={game.name} game={game} />
+            ))}
+          </div>
+        </section>
+
+        {/* Coming Soon */}
+        <section className="px-4 pb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-semibold text-foreground">Coming Soon</h2>
+              <span className="text-xs text-muted">({soonGames.length})</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {soonGames.slice(0, 6).map((game) => (
+              <div key={game.name} className="bg-card rounded-[10px] border border-border p-3 opacity-60">
+                <div className="aspect-square bg-[#0a0a0a] rounded-[6px] mb-2 flex items-center justify-center">
+                  <Sparkles className="w-6 h-6 text-inactive" />
+                </div>
+                <span className="text-[11px] font-medium text-muted truncate block">{game.name}</span>
+              </div>
+            ))}
+          </div>
+          {soonGames.length > 6 && (
+            <button className="w-full mt-3 py-2.5 border border-border rounded-[10px] text-xs font-medium text-muted">
+              +{soonGames.length - 6} more coming
+            </button>
+          )}
+        </section>
+      </main>
+
+      {/* Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border px-4 py-3 safe-area-inset-bottom">
+        <div className="flex items-center justify-around">
+          {[
+            { icon: Home, label: "Home" },
+            { icon: Gamepad2, label: "Games" },
+            { icon: History, label: "History" },
+            { icon: User, label: "Profile" },
+          ].map((item, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveNav(index)}
+              className="flex flex-col items-center gap-1 p-2"
+            >
+              <item.icon
+                className={`w-5 h-5 transition-colors ${
+                  activeNav === index ? "text-gold" : "text-inactive"
+                }`}
+              />
+              <span className={`text-[10px] transition-colors ${
+                activeNav === index ? "text-gold" : "text-inactive"
+              }`}>
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </nav>
+    </div>
+  )
+}
