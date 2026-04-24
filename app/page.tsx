@@ -55,10 +55,10 @@ const categoryIcons: Record<Category, typeof Zap> = {
 function FeaturedCard({ game }: { game: Game }) {
   return (
     <button onClick={() => launchGame(game.sceneKey)} className="relative w-full aspect-[16/9] bg-card rounded-[16px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]">
-      <div className="absolute inset-0 bg-[#0a0a0a]" />
+      <div className="absolute inset-0 bg-[#0a0a0a] pointer-events-none" />
       
       {/* Content overlay */}
-      <div className="absolute inset-0 flex flex-col justify-between p-4">
+      <div className="absolute inset-0 flex flex-col justify-between p-4 pointer-events-none">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
             <span className="px-2 py-1 bg-gold/20 text-gold text-[10px] font-semibold uppercase rounded-full">
@@ -267,7 +267,7 @@ export default function CasinoLobby() {
   }
 
   const featuredGame = games.find(g => g.featured)!
-  const skillGames = games.filter(g => g.category === "SKILL")
+  const skillGames = games.filter(g => g.category === "SKILL")  // includes featured
   const chanceGames = games.filter(g => g.category === "CHANCE")
   const slotGames = games.filter(g => g.category === "SLOTS")
   const soonGames = games.filter(g => g.category === "SOON")
