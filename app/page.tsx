@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
-import { Home, Gamepad2, History, User, ChevronRight, Zap, Sparkles, Layers, Play, Pause } from "lucide-react"
+import { Home, Gamepad2, History, Radio, ChevronRight, Zap, Sparkles, Layers, Play, Pause } from "lucide-react"
 
 type Category = "SKILL" | "CHANCE" | "SLOTS" | "SOON"
 
@@ -501,7 +501,7 @@ export default function CasinoLobby() {
             { icon: Home, label: "Home" },
             { icon: Gamepad2, label: "Games" },
             { icon: History, label: "History" },
-            { icon: User, label: "Profile" },
+            { icon: Radio, label: "Radio" },
           ].map((item, index) => (
             <button
               key={index}
