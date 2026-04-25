@@ -219,6 +219,8 @@ const radioStations: RadioStation[] = [
   { id: "jazz", name: "Smooth Jazz", genre: "JAZZ", stream: "https://streams.ilovemusic.de/iloveradio15.mp3" },
   { id: "hiphop", name: "Hip Hop", genre: "HIP HOP", stream: "https://streams.ilovemusic.de/iloveradio7.mp3" },
   { id: "rnb", name: "R&B Soul", genre: "R&B", stream: "https://streams.ilovemusic.de/iloveradio6.mp3" },
+  { id: "rock", name: "Classic Rock", genre: "ROCK", stream: "https://streams.ilovemusic.de/iloveradio21.mp3" },
+  { id: "edm", name: "EDM / Electronic", genre: "EDM", stream: "https://streams.ilovemusic.de/iloveradio9.mp3" },
 ];
 
 function RadioPlayer() {
