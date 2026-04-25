@@ -376,14 +376,18 @@ export default function CasinoLobby() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* MODIFIED: Iframe Overlay */}
       {activeGame && (
-        <div className="fixed inset-0 z-100 bg-black flex items-center justify-center">
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#000' }}>
           <button
             onClick={() => setActiveGame(null)}
-            className="absolute top-2 left-2 z-101 bg-black/50 text-gold text-xs font-semibold px-3 py-1.5 rounded-full border border-gold backdrop-blur-sm"
+            style={{ position: 'absolute', top: 12, left: 12, zIndex: 10000, background: 'rgba(0,0,0,0.75)', color: '#c9a84c', fontSize: 13, fontWeight: 700, padding: '6px 14px', borderRadius: 20, border: '1px solid #c9a84c', backdropFilter: 'blur(8px)' }}
           >
             ← LOBBY
           </button>
-          <iframe src={activeGame} width="100%" height="100%" frameBorder="0" allowFullScreen />
+          <iframe
+            src={activeGame}
+            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none', display: 'block' }}
+            allowFullScreen
+          />
         </div>
       )}
 
