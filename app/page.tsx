@@ -283,6 +283,8 @@ export default function CasinoLobby() {
   useEffect(() => {
     audioRef.current = new Audio();
     audioRef.current.volume = 0.6;
+    // Reset scroll to top on mount
+    window.scrollTo(0, 0);
     return () => { audioRef.current?.pause(); };
   }, []);
 
