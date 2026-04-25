@@ -16,9 +16,10 @@ interface Game {
 
 const GAME_BASE_URL = "https://zero-934.github.io/jett-game/"
 
-function launchGame(sceneKey?: string) {
-  if (!sceneKey) return
-  window.location.href = `${GAME_BASE_URL}?scene=${sceneKey}`
+// MODIFIED: launchGame now sets activeGame state for iframe overlay
+function launchGame(sceneKey?: string, setActiveGame?: (url: string | null) => void) {
+  if (!sceneKey || !setActiveGame) return
+  setActiveGame(`${GAME_BASE_URL}?scene=${sceneKey}`)
 }
 
 const games: Game[] = [
@@ -53,9 +54,10 @@ const categoryIcons: Record<Category, typeof Zap> = {
   SOON: Sparkles,
 }
 
-function FeaturedCard({ game }: { game: Game }) {
+// Pass setActiveGame prop to FeaturedCard
+function FeaturedCard({ game, setActiveGame }: { game: Game, setActiveGame: (url: string | null) => void }) {
   return (
-    <button onClick={() => launchGame(game.sceneKey)} className="relative w-full aspect-[16/9] bg-card rounded-[16px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]">
+    <button onClick={() => launchGame(game.sceneKey, setActiveGame)} className="relative w-full aspect-[16/9] bg-card rounded-[16px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]">
       <div className="absolute inset-0 bg-[#0a0a0a] pointer-events-none" />
 
       {/* Content overlay */}
@@ -88,13 +90,14 @@ function FeaturedCard({ game }: { game: Game }) {
   )
 }
 
-function CompactCard({ game }: { game: Game }) {
+// Pass setActiveGame prop to CompactCard
+function CompactCard({ game, setActiveGame }: { game: Game, setActiveGame: (url: string | null) => void }) {
   const isSoon = game.category === "SOON"
   const Icon = categoryIcons[game.category]
 
   return (
     <button
-      onClick={() => !isSoon && launchGame(game.sceneKey)}
+      onClick={() => !isSoon && launchGame(game.sceneKey, setActiveGame)}
       className="flex-shrink-0 w-[140px] text-left bg-card rounded-[12px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.97]"
       disabled={isSoon}
     >
@@ -114,14 +117,15 @@ function CompactCard({ game }: { game: Game }) {
   )
 }
 
-function GameCard({ game, size = "normal" }: { game: Game; size?: "normal" | "large" }) {
+// Pass setActiveGame prop to GameCard
+function GameCard({ game, size = "normal", setActiveGame }: { game: Game; size?: "normal" | "large", setActiveGame: (url: string | null) => void }) {
   const isSoon = game.category === "SOON"
   const Icon = categoryIcons[game.category]
 
   if (size === "large") {
     return (
       <button
-        onClick={() => !isSoon && launchGame(game.sceneKey)}
+        onClick={() => !isSoon && launchGame(game.sceneKey, setActiveGame)}
         className="col-span-2 text-left bg-card rounded-[14px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]"
         disabled={isSoon}
       >
@@ -157,7 +161,7 @@ function GameCard({ game, size = "normal" }: { game: Game; size?: "normal" | "la
 
   return (
     <button
-      onClick={() => !isSoon && launchGame(game.sceneKey)}
+      onClick={() => !isSoon && launchGame(game.sceneKey, setActiveGame)}
       className="text-left bg-card rounded-[12px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.97]"
       disabled={isSoon}
     >
@@ -201,15 +205,20 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
 }
 
 interface RadioStation {
+  id: string;
   name: string;
   genre: string;
-  streamUrl: string;
+  stream: string;
 }
 
+// MODIFIED: Updated radio stations list
 const radioStations: RadioStation[] = [
-  { name: "Lo-Fi Beats", genre: "Hip Hop", streamUrl: "https://streams.ilovemusic.de/iloveradio17.mp3" },
-  { name: "Chillwave", genre: "Chillout", streamUrl: "https://streams.ilovemusic.de/iloveradio2.mp3" },
-  { name: "Deep Dive", genre: "Deep House", streamUrl: "https://streams.ilovemusic.de/iloveradio10.mp3" },
+  { id: "lofi", name: "Lo-Fi Hip Hop", genre: "CHILL", stream: "https://streams.ilovemusic.de/iloveradio17.mp3" },
+  { id: "chillout", name: "Chillout Lounge", genre: "AMBIENT", stream: "https://streams.ilovemusic.de/iloveradio2.mp3" },
+  { id: "deephouse", name: "Deep House", genre: "HOUSE", stream: "https://streams.ilovemusic.de/iloveradio10.mp3" },
+  { id: "jazz", name: "Smooth Jazz", genre: "JAZZ", stream: "https://streams.ilovemusic.de/iloveradio15.mp3" },
+  { id: "hiphop", name: "Hip Hop", genre: "HIP HOP", stream: "https://streams.ilovemusic.de/iloveradio7.mp3" },
+  { id: "rnb", name: "R&B Soul", genre: "R&B", stream: "https://streams.ilovemusic.de/iloveradio6.mp3" },
 ];
 
 function RadioPlayer() {
@@ -219,14 +228,14 @@ function RadioPlayer() {
 
   const handlePlayPause = (station: RadioStation) => {
     if (audioRef.current) {
-      if (currentStation?.streamUrl === station.streamUrl && isPlaying) {
+      if (currentStation?.id === station.id && isPlaying) {
         // Stop current station
         audioRef.current.pause();
         setIsPlaying(false);
         setCurrentStation(null);
       } else {
         // Play new station or resume
-        audioRef.current.src = station.streamUrl;
+        audioRef.current.src = station.stream;
         audioRef.current.play().catch(e => console.error("Error playing audio:", e));
         setIsPlaying(true);
         setCurrentStation(station);
@@ -257,9 +266,9 @@ function RadioPlayer() {
       )}
       {radioStations.map((station) => (
         <div
-          key={station.name}
+          key={station.id}
           className={`bg-surface rounded-[12px] border ${
-            currentStation?.name === station.name && isPlaying ? "border-gold" : "border-border"
+            currentStation?.id === station.id && isPlaying ? "border-gold" : "border-border"
           } p-4 flex items-center justify-between transition-all duration-200`}
         >
           <div>
@@ -269,10 +278,10 @@ function RadioPlayer() {
           <button
             onClick={() => handlePlayPause(station)}
             className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              currentStation?.name === station.name && isPlaying ? "bg-gold text-black" : "bg-card text-gold"
+              currentStation?.id === station.id && isPlaying ? "bg-gold text-black" : "bg-card text-gold"
             }`}
           >
-            {currentStation?.name === station.name && isPlaying ? (
+            {currentStation?.id === station.id && isPlaying ? (
               <Pause className="w-5 h-5" />
             ) : (
               <Play className="w-5 h-5 ml-0.5" />
@@ -290,6 +299,8 @@ export default function CasinoLobby() {
   const [unlocked, setUnlocked] = useState(false)
   const [pin, setPin] = useState("")
   const [error, setError] = useState(false)
+  // MODIFIED: State for iframe overlay
+  const [activeGame, setActiveGame] = useState<string | null>(null);
 
   // Check if already authenticated
   const STORAGE_KEY = "jg_auth"
@@ -361,6 +372,19 @@ export default function CasinoLobby() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* MODIFIED: Iframe Overlay */}
+      {activeGame && (
+        <div className="fixed inset-0 z-100 bg-black flex items-center justify-center">
+          <button
+            onClick={() => setActiveGame(null)}
+            className="absolute top-2 left-2 z-101 bg-black/50 text-gold text-xs font-semibold px-3 py-1.5 rounded-full border border-gold backdrop-blur-sm"
+          >
+            ← LOBBY
+          </button>
+          <iframe src={activeGame} width="100%" height="100%" frameBorder="0" allowFullScreen />
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between border-b border-border">
         {activeNav === 3 ? (
@@ -392,7 +416,7 @@ export default function CasinoLobby() {
           <>
             {/* Featured Hero */}
             <section className="px-4 pt-4 pb-6">
-              <FeaturedCard game={featuredGame} />
+              <FeaturedCard game={featuredGame} setActiveGame={setActiveGame} />
             </section>
 
             {/* Hot Games - Horizontal Scroll */}
@@ -402,7 +426,7 @@ export default function CasinoLobby() {
               </div>
               <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
                 {hotGames.map((game) => (
-                  <CompactCard key={game.name} game={game} />
+                  <CompactCard key={game.name} game={game} setActiveGame={setActiveGame} />
                 ))}
               </div>
             </section>
@@ -412,10 +436,10 @@ export default function CasinoLobby() {
               <SectionHeader title="Skill Games" count={skillGames.length} />
               <div className="grid grid-cols-2 gap-3">
                 {skillGames.slice(0, 1).map((game) => (
-                  <GameCard key={game.name} game={game} size="large" />
+                  <GameCard key={game.name} game={game} size="large" setActiveGame={setActiveGame} />
                 ))}
                 {skillGames.slice(1).map((game) => (
-                  <GameCard key={game.name} game={game} />
+                  <GameCard key={game.name} game={game} setActiveGame={setActiveGame} />
                 ))}
               </div>
             </section>
@@ -425,7 +449,7 @@ export default function CasinoLobby() {
               <SectionHeader title="Games of Chance" count={chanceGames.length} />
               <div className="grid grid-cols-2 gap-3">
                 {chanceGames.map((game, i) => (
-                  <GameCard key={game.name} game={game} size={i === 0 ? "large" : "normal"} />
+                  <GameCard key={game.name} game={game} size={i === 0 ? "large" : "normal"} setActiveGame={setActiveGame} />
                 ))}
               </div>
             </section>
@@ -437,7 +461,7 @@ export default function CasinoLobby() {
               </div>
               <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
                 {slotGames.map((game) => (
-                  <CompactCard key={game.name} game={game} />
+                  <CompactCard key={game.name} game={game} setActiveGame={setActiveGame} />
                 ))}
               </div>
             </section>
