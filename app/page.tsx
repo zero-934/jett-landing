@@ -371,7 +371,7 @@ export default function CasinoLobby() {
   const hotGames = games.filter(g => g.hot && !g.featured)
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden" style={{height: "100dvh"}}>
       {/* MODIFIED: Iframe Overlay */}
       {activeGame && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: '#000' }}>
