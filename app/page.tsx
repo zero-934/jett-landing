@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Home, Gamepad2, History, User, ChevronRight, Zap, Sparkles, Layers } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Home, Gamepad2, History, User, ChevronRight, Zap, Sparkles, Layers, Play, Pause } from "lucide-react"
 
 type Category = "SKILL" | "CHANCE" | "SLOTS" | "SOON"
 
@@ -57,7 +57,7 @@ function FeaturedCard({ game }: { game: Game }) {
   return (
     <button onClick={() => launchGame(game.sceneKey)} className="relative w-full aspect-[16/9] bg-card rounded-[16px] border border-border overflow-hidden transition-transform duration-150 active:scale-[0.98]">
       <div className="absolute inset-0 bg-[#0a0a0a] pointer-events-none" />
-      
+
       {/* Content overlay */}
       <div className="absolute inset-0 flex flex-col justify-between p-4 pointer-events-none">
         <div className="flex items-start justify-between">
@@ -73,7 +73,7 @@ function FeaturedCard({ game }: { game: Game }) {
           </div>
           <span className="text-[11px] text-muted">{game.rtp} RTP</span>
         </div>
-        
+
         <div className="flex items-end justify-between">
           <div>
             <span className="text-[10px] text-muted uppercase tracking-wider">{game.category}</span>
@@ -200,6 +200,91 @@ function SectionHeader({ title, count }: { title: string; count: number }) {
   )
 }
 
+interface RadioStation {
+  name: string;
+  genre: string;
+  streamUrl: string;
+}
+
+const radioStations: RadioStation[] = [
+  { name: "Lo-Fi Beats", genre: "Hip Hop", streamUrl: "https://streams.ilovemusic.de/iloveradio17.mp3" },
+  { name: "Chillwave", genre: "Chillout", streamUrl: "https://streams.ilovemusic.de/iloveradio2.mp3" },
+  { name: "Deep Dive", genre: "Deep House", streamUrl: "https://streams.ilovemusic.de/iloveradio10.mp3" },
+];
+
+function RadioPlayer() {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handlePlayPause = (station: RadioStation) => {
+    if (audioRef.current) {
+      if (currentStation?.streamUrl === station.streamUrl && isPlaying) {
+        // Stop current station
+        audioRef.current.pause();
+        setIsPlaying(false);
+        setCurrentStation(null);
+      } else {
+        // Play new station or resume
+        audioRef.current.src = station.streamUrl;
+        audioRef.current.play().catch(e => console.error("Error playing audio:", e));
+        setIsPlaying(true);
+        setCurrentStation(station);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio();
+      audioRef.current.volume = 0.6; // Set a default volume
+    }
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = ""; // Clear source to stop buffering
+      }
+    };
+  }, []);
+
+  return (
+    <div className="flex flex-col gap-4 p-4 pb-24">
+      {currentStation && isPlaying && (
+        <div className="text-sm text-gold mb-2 text-center">
+          Now Playing: <span className="font-semibold">{currentStation.name}</span>
+        </div>
+      )}
+      {radioStations.map((station) => (
+        <div
+          key={station.name}
+          className={`bg-surface rounded-[12px] border ${
+            currentStation?.name === station.name && isPlaying ? "border-gold" : "border-border"
+          } p-4 flex items-center justify-between transition-all duration-200`}
+        >
+          <div>
+            <h3 className="text-base font-medium text-foreground">{station.name}</h3>
+            <span className="text-xs text-muted">{station.genre}</span>
+          </div>
+          <button
+            onClick={() => handlePlayPause(station)}
+            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              currentStation?.name === station.name && isPlaying ? "bg-gold text-black" : "bg-card text-gold"
+            }`}
+          >
+            {currentStation?.name === station.name && isPlaying ? (
+              <Pause className="w-5 h-5" />
+            ) : (
+              <Play className="w-5 h-5 ml-0.5" />
+            )}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 export default function CasinoLobby() {
   const [activeNav, setActiveNav] = useState(0)
   const [unlocked, setUnlocked] = useState(false)
@@ -278,9 +363,16 @@ export default function CasinoLobby() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm px-4 py-3 flex items-center justify-between border-b border-border">
-        <span className="text-xl font-light text-foreground tracking-widest uppercase">
-          jett
-        </span>
+        {activeNav === 3 ? (
+          <span className="text-xl font-light text-gold tracking-widest uppercase">
+            PROFILE
+          </span>
+        ) : (
+          <span className="text-xl font-light text-foreground tracking-widest uppercase">
+            jett
+          </span>
+        )}
+
 
         <div className="flex items-center gap-3">
           <div className="bg-surface px-3 py-1.5 rounded-full border border-border">
@@ -294,82 +386,88 @@ export default function CasinoLobby() {
 
       {/* Main Content */}
       <main className="flex-1 pb-24 overflow-y-auto">
-        {/* Featured Hero */}
-        <section className="px-4 pt-4 pb-6">
-          <FeaturedCard game={featuredGame} />
-        </section>
+        {activeNav === 3 ? (
+          <RadioPlayer />
+        ) : (
+          <>
+            {/* Featured Hero */}
+            <section className="px-4 pt-4 pb-6">
+              <FeaturedCard game={featuredGame} />
+            </section>
 
-        {/* Hot Games - Horizontal Scroll */}
-        <section className="pb-6">
-          <div className="px-4">
-            <SectionHeader title="Hot Right Now" count={hotGames.length} />
-          </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-            {hotGames.map((game) => (
-              <CompactCard key={game.name} game={game} />
-            ))}
-          </div>
-        </section>
-
-        {/* Skill Games */}
-        <section className="px-4 pb-6">
-          <SectionHeader title="Skill Games" count={skillGames.length} />
-          <div className="grid grid-cols-2 gap-3">
-            {skillGames.slice(0, 1).map((game) => (
-              <GameCard key={game.name} game={game} size="large" />
-            ))}
-            {skillGames.slice(1).map((game) => (
-              <GameCard key={game.name} game={game} />
-            ))}
-          </div>
-        </section>
-
-        {/* Chance Games */}
-        <section className="px-4 pb-6">
-          <SectionHeader title="Games of Chance" count={chanceGames.length} />
-          <div className="grid grid-cols-2 gap-3">
-            {chanceGames.map((game, i) => (
-              <GameCard key={game.name} game={game} size={i === 0 ? "large" : "normal"} />
-            ))}
-          </div>
-        </section>
-
-        {/* Slots */}
-        <section className="pb-6">
-          <div className="px-4">
-            <SectionHeader title="Slots" count={slotGames.length} />
-          </div>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
-            {slotGames.map((game) => (
-              <CompactCard key={game.name} game={game} />
-            ))}
-          </div>
-        </section>
-
-        {/* Coming Soon */}
-        <section className="px-4 pb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-foreground">Coming Soon</h2>
-              <span className="text-xs text-muted">({soonGames.length})</span>
-            </div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {soonGames.slice(0, 6).map((game) => (
-              <div key={game.name} className="bg-card rounded-[10px] border border-border p-3 opacity-60">
-                <div className="aspect-square bg-[#0a0a0a] rounded-[6px] mb-2 flex items-center justify-center">
-                  <Sparkles className="w-6 h-6 text-inactive" />
-                </div>
-                <span className="text-[11px] font-medium text-muted truncate block">{game.name}</span>
+            {/* Hot Games - Horizontal Scroll */}
+            <section className="pb-6">
+              <div className="px-4">
+                <SectionHeader title="Hot Right Now" count={hotGames.length} />
               </div>
-            ))}
-          </div>
-          {soonGames.length > 6 && (
-            <button className="w-full mt-3 py-2.5 border border-border rounded-[10px] text-xs font-medium text-muted">
-              +{soonGames.length - 6} more coming
-            </button>
-          )}
-        </section>
+              <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+                {hotGames.map((game) => (
+                  <CompactCard key={game.name} game={game} />
+                ))}
+              </div>
+            </section>
+
+            {/* Skill Games */}
+            <section className="px-4 pb-6">
+              <SectionHeader title="Skill Games" count={skillGames.length} />
+              <div className="grid grid-cols-2 gap-3">
+                {skillGames.slice(0, 1).map((game) => (
+                  <GameCard key={game.name} game={game} size="large" />
+                ))}
+                {skillGames.slice(1).map((game) => (
+                  <GameCard key={game.name} game={game} />
+                ))}
+              </div>
+            </section>
+
+            {/* Chance Games */}
+            <section className="px-4 pb-6">
+              <SectionHeader title="Games of Chance" count={chanceGames.length} />
+              <div className="grid grid-cols-2 gap-3">
+                {chanceGames.map((game, i) => (
+                  <GameCard key={game.name} game={game} size={i === 0 ? "large" : "normal"} />
+                ))}
+              </div>
+            </section>
+
+            {/* Slots */}
+            <section className="pb-6">
+              <div className="px-4">
+                <SectionHeader title="Slots" count={slotGames.length} />
+              </div>
+              <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+                {slotGames.map((game) => (
+                  <CompactCard key={game.name} game={game} />
+                ))}
+              </div>
+            </section>
+
+            {/* Coming Soon */}
+            <section className="px-4 pb-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-base font-semibold text-foreground">Coming Soon</h2>
+                  <span className="text-xs text-muted">({soonGames.length})</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {soonGames.slice(0, 6).map((game) => (
+                  <div key={game.name} className="bg-card rounded-[10px] border border-border p-3 opacity-60">
+                    <div className="aspect-square bg-[#0a0a0a] rounded-[6px] mb-2 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-inactive" />
+                    </div>
+                    <span className="text-[11px] font-medium text-muted truncate block">{game.name}</span>
+                  </div>
+                ))}
+              </div>
+              {soonGames.length > 6 && (
+                <button className="w-full mt-3 py-2.5 border border-border rounded-[10px] text-xs font-medium text-muted">
+                  +{soonGames.length - 6} more coming
+                </button>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
       {/* Bottom Navigation */}
