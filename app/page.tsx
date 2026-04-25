@@ -223,42 +223,13 @@ const radioStations: RadioStation[] = [
   { id: "edm", name: "EDM / Electronic", genre: "EDM", stream: "https://streams.ilovemusic.de/iloveradio9.mp3" },
 ];
 
-function RadioPlayer() {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+interface RadioPlayerProps {
+  currentStation: RadioStation | null;
+  isPlaying: boolean;
+  onPlayPause: (station: RadioStation) => void;
+}
 
-  const handlePlayPause = (station: RadioStation) => {
-    if (audioRef.current) {
-      if (currentStation?.id === station.id && isPlaying) {
-        // Stop current station
-        audioRef.current.pause();
-        setIsPlaying(false);
-        setCurrentStation(null);
-      } else {
-        // Play new station or resume
-        audioRef.current.src = station.stream;
-        audioRef.current.play().catch(e => console.error("Error playing audio:", e));
-        setIsPlaying(true);
-        setCurrentStation(station);
-      }
-    }
-  };
-
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
-      audioRef.current.volume = 0.6; // Set a default volume
-    }
-
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = ""; // Clear source to stop buffering
-      }
-    };
-  }, []);
-
+function RadioPlayer({ currentStation, isPlaying, onPlayPause }: RadioPlayerProps) {
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
       {currentStation && isPlaying && (
@@ -278,7 +249,7 @@ function RadioPlayer() {
             <span className="text-xs text-muted">{station.genre}</span>
           </div>
           <button
-            onClick={() => handlePlayPause(station)}
+            onClick={() => onPlayPause(station)}
             className={`w-10 h-10 rounded-full flex items-center justify-center ${
               currentStation?.id === station.id && isPlaying ? "bg-gold text-black" : "bg-card text-gold"
             }`}
@@ -303,6 +274,31 @@ export default function CasinoLobby() {
   const [error, setError] = useState(false)
   // MODIFIED: State for iframe overlay
   const [activeGame, setActiveGame] = useState<string | null>(null);
+
+  // Radio state — lives here so music persists across tab changes
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentStation, setCurrentStation] = useState<RadioStation | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    audioRef.current = new Audio();
+    audioRef.current.volume = 0.6;
+    return () => { audioRef.current?.pause(); };
+  }, []);
+
+  const handlePlayPause = (station: RadioStation) => {
+    if (!audioRef.current) return;
+    if (currentStation?.id === station.id && isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+      setCurrentStation(null);
+    } else {
+      audioRef.current.src = station.stream;
+      audioRef.current.play().catch(e => console.error("Radio error:", e));
+      setIsPlaying(true);
+      setCurrentStation(station);
+    }
+  };
 
   // Check if already authenticated
   const STORAGE_KEY = "jg_auth"
@@ -417,7 +413,7 @@ export default function CasinoLobby() {
       {/* Main Content */}
       <main className="flex-1 pb-24 overflow-y-auto">
         {activeNav === 3 ? (
-          <RadioPlayer />
+          <RadioPlayer currentStation={currentStation} isPlaying={isPlaying} onPlayPause={handlePlayPause} />
         ) : (
           <>
             {/* Featured Hero */}
