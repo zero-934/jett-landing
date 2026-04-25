@@ -33,6 +33,7 @@ const games: Game[] = [
   { name: "Midnight Masquerade", sceneKey: "MasqueradeScene", category: "SLOTS", rtp: "97%" },
   { name: "Surge", sceneKey: "SurgeScene", category: "SLOTS", rtp: "95%" },
   { name: "Inferno", sceneKey: "InfernoScene", category: "SLOTS", rtp: "94%" },
+  { name: "Doom Crash", sceneKey: "DoomCrashScene", category: "SKILL", rtp: "96%", hot: true },
   { name: "Shadow Roulette", category: "SOON", rtp: "97%" },
   { name: "Phantom Poker", category: "SOON", rtp: "98%" },
   { name: "Obsidian Blackjack", category: "SOON", rtp: "99%" },
